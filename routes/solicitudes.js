@@ -1,18 +1,15 @@
-const router = require('express').Router();
+var router = require('express').Router()
 
-const {
-    createSolicitud,
-    getSolicitud,
-    updateSolicitud,
-    deleteSolicitud,
-    countIdMascota
-} = require('../controllers/solicitudes')
-  
-router.get('/', getSolicitud);
-router.get('/count/:id', countIdMascota);
-router.get('/:id', getSolicitud);
-router.post('/', createSolicitud);
-router.put('/:id', updateSolicitud);
-router.delete('/:id', deleteSolicitud);
+var {
+	crearSolicitud,
+	obtenerSolicitud,
+	modificarSolicitud,
+	eliminarSolicitud
+} = require('../controllers/solicitudes');
+
+router.get('/', obtenerSolicitud);
+router.post('/', crearSolicitud);
+router.put('/:id', modificarSolicitud);
+router.delete('/:id', eliminarSolicitud);
 
 module.exports = router;

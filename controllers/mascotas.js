@@ -1,77 +1,89 @@
-const mongoose = require('mongoose');
-const Mascota = mongoose.model("Mascota");
+const mongoose = require("mongoose")
+const Mascota = mongoose.model("Mascota")
 
 // CRUD
-function createMascota(req, res, next) {
-    const mascota = new Mascota(req.body);
-    mascota.save().then(pet => {
-        res.status(200).send(pet);
-    }).catch(next);
+
+function crearMascota(req, res, next){
+	var mascota = new Mascota(req.body)
+  	mascota.estado = 'disponible'
+  	mascota.save().then(mascota => {
+    	res.status(201).send(mascota)
+  	}).catch(next)
 }
 
-function getMascotas(req, res, next) {
-    if(req.params.id){// paso un id y solo regresa la mascota de ese id
-        Mascota.findById(req.params.id)
-        .then(pet => {res.send(pet)})
-        .catch(next);
-    }else{
-        Mascota.find()
-        .then(pets => res.send(pets))
-        .catch(next);
-    }
-}
-
-function updateMascota(req, res, next) {
+function obtenerMascota(req, res, next){
+	if(req.params.id){
     Mascota.findById(req.params.id)
-    .then(pet => {
-        if(!pet){ return res.sendStatus(401);}
-        let nuevamascota = req.body;
-        if(typeof nuevamascota.nombre !== 'undefined')
-            mascota.nombre = nuevamascota.nombre;
-        if(typeof nuevamascota.categoria !== 'undefined')
-            mascota.categoria = nuevamascota.categoria;
-        if(typeof nuevamascota.fotos !== 'undefined')
-            mascota.fotos = nuevamascota.fotos;
-        if(typeof nuevamascota.descripcion !== 'undefined')
-            mascota.descripcion = nuevamascota.descripcion;
-        if(typeof nuevamascota.anuciante !== 'undefined')
-            mascota.anuciante = nuevamascota.anuciante;
-        if(typeof nuevamascota.ubicacion !== 'undefined')
-            mascota.ubicacion = nuevamascota.ubicacion;
-        pet.save()
-        .then(petupdated => res.status(200).json(petupdated.publicData))
-        .catch(next);
+    .then(mascota => {
+	      res.status(200).json(mascota.publicData())
+	  })
+    .catch(next)
+  } else {
+    Mascota.find()
+    .then(mascotas => {
+        res.send(mascotas)
+    }).catch(next)
+  } 
+}
+
+function modificarMascota(req, res,next){
+	 Mascota.findById(req.params.id).then(mascota => {
+      if (!mascota) { return res.sendStatus(401); }
+      let nuevaInfo = req.body
+      if (typeof nuevaInfo.nombre !== 'undefined')
+        mascota.nombre = nuevaInfo.nombre
+      if (typeof nuevaInfo.categoria !== 'undefined')
+        mascota.categoria = nuevaInfo.categoria
+      if (typeof nuevaInfo.fotos !== 'undefined')
+        mascota.fotos = nuevaInfo.fotos
+      if (typeof nuevaInfo.descripcion !== 'undefined')
+        mascota.descripcion = nuevaInfo.descripcion
+      if (typeof nuevaInfo.anunciante !== 'undefined')
+        mascota.anunciante = nuevaInfo.anunciante
+      if (typeof nuevaInfo.ubicacion !== 'undefined')
+        mascota.ubicacion = nuevaInfo.ubicacion
+      mascota.save().then(updated => {                                   
+        res.status(201).json(updated.publicData())
+      }).catch(next)
+    }).catch(next)
+}
+
+function eliminarMascota(req, res, next){
+	Mascota.findOneAndDelete({ _id: req.params.id }).then(r => {
+      res.status(200).send(`Mascota ${req.params.id} eliminada: ${r}`);
     })
-    .catch(next);
-
-    // var mascota = new Mascota(req.params.id, 'Pelusa', 'Gato', 'fotos', 'Tambien blanca', 'anunciante', 'alla');
-    // const modificaciones = req.body;
-    // mascota = {...mascota, ...modificaciones};
-    // res.send(mascota);
 }
 
-function deleteMascota(req, res, next) {
-    Mascota.findOneAndDelete({_id: req.params.id})
-    .then(eliminandoando => {
-        res.status(200).send(`Mascota ${req.params.id} ha sido eliminado: ${eliminandoando}`);
-    }).catch(next); //Quiuboles que? y tu mascota se escapó
+function count(req,res,next) {
+	var categoria = req.params.cat
+	Mascota.aggregate([
+	  {'$match': { 'categoria': categoria}}, 
+	  {'$count': 'total'}
+	]).then(r => {
+		res.status(200).send(r)
+	})
 }
 
-function count(req, res, next) {
-    let categoria = req.params.cat;
-    Mascota.aggregate([
-        {'$match': { 'categoria': categoria}}, 
-        {'$count': 'total'}
-    ])
-    .then(total => res.status(200).send(total))
-    .catch(next);
-}
-
-// exportamos las funciones definidas
 module.exports = {
-    createMascota,
-    getMascotas,
-    updateMascota,
-    deleteMascota,
-    count
+	crearMascota,
+	obtenerMascota,
+	modificarMascota,
+	eliminarMascota,
+	count
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

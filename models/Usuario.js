@@ -1,82 +1,101 @@
+// Importacion de modulos
+const mongoose = require('mongoose');                         //Importando mongoose.
+const uniqueValidator = require("mongoose-unique-validator"); //Importando módulo mongoose-unique-validator, pendiente de instalar.
+const crypto = require('crypto');                             //Importando módulo crypto
+const jwt = require('jsonwebtoken');                          //Importando módulo jsonwebtoken, pendiente de instalar.
+const secret = require('../config').secret;                   // ???? es un misterio que resolveremos en la última sesión
 
-const mongoose = require('mongoose');
-const uniqueValidator = require('mongoose-unique-validator');
-const crypto = require('crypto');
-const jwt = require('jsonwebtoken');
-const secret = require('../config').secret;
 
-const UsuarioSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        unique: true,
-        require: [true, "No puede estar vacio el campo username"],
-        lowercase: true,
-        match: [/^[a-z0-9]+$/, "Username es invalido"],
-        index: true
-    },
-    nombre: {
-        type: String,
-        require: true
-    },
-    apellido: {
-        type: String,
-        require: true
-    },
-    email: {
-        type: String,
-        unique: true,
-        require: [true, "Falta email"],
-        match: [/\S+@\S+.\S+/, "Correo es invalido"],
-        index: true
-    },
-    tipo: {
-        type: String,
-        enum: ['normal','anunciante']
-    },
-    hash: String,
-    salt: String
-}, {collection: "Usuarios", timestamps: true});
 
-UsuarioSchema.plugin(uniqueValidator, {message: "Ya existe"});
+//Definiendo cada campo con sus tipos de dato y las validaciones sobre este.
+const UsuarioSchema = new mongoose.Schema({                   
+username: {                                                  
+  type: String,
+  unique: true, //este campo no se puede repetir
+  lowercase: true,
+  required: [true, "no puede estar vacío"],
+  match: [/^[a-zA-Z0-9]+$/, "es inválido"],
+  index: true,
+},                                           
+nombre: { type: String, required: true },
+apellido: { type: String, required: true },
+email: {
+  type: String,
+  unique: true, //este campo no se puede repetir
+  lowercase: true,
+  required: [true, "no puede estar vacío"],
+  match: [/\S+@\S+\.\S+/, "es inválido"],
+  index: true,
+},
+ubicacion: String,
+telefono: String,
+bio: String,
+foto: String,
+tipo: { type: String, enum: ['normal', 'anunciante'] },
+hash: String, //este campo se utilizará para la sesión
+salt: String, //este campo se utilizará para la sesión
+},
+{ timestamps: true }
+);
 
-UsuarioSchema.methods.publicData = function () {
-    return {
-        _id: this._id,
-        username: this.username,
-        nombre: this.nombre,
-        apellido: this.apellido,
-        email: this.email,
-        tipo: this.tipo
-    };
-};
+// usando plugin de validación para que no se repitan correos ni usernames
+UsuarioSchema.plugin(uniqueValidator, { message: "Ya existe" }); 
 
 UsuarioSchema.methods.crearPassword = function (password) {
-    this.salt = crypto.randomBytes(16).toString('hex');
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString("hex");
-}
+  this.salt = crypto.randomBytes(16).toString("hex"); // generando una "sal" random para cada usuario
+  this.hash = crypto
+  .pbkdf2Sync(password, this.salt, 10000, 512, "sha512")
+  .toString("hex"); // generando un hash utilizando la salt
+};
 
 UsuarioSchema.methods.validarPassword = function (password) {
-    const newHash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
-    return this.hash === newHash;
-}
+  const hash = crypto
+    .pbkdf2Sync(password, this.salt, 10000, 512, "sha512")
+    .toString("hex");
+  return this.hash === hash;
+};
 
-UsuarioSchema.methods.generaJWT = function () {
-    const today = new Date();
-    const expira = new Date(today);
-    expira.setDate(today.getDate() + 60);
-    return jwt.sign({
-        id: this._id,
-        username: this.username,
-        expira: parseInt(expira.getTime() / 1000)
-    }, secret);
-}
+UsuarioSchema.methods.generarJWT = function() {
+  const today = new Date();
+  const exp = new Date(today);
+  exp.setDate(today.getDate() + 60); // 60 días antes de expirar
 
-UsuarioSchema.methods.toAuthJSON = function (){
-    return {
-        username: this.username,
-        email: this.email,
-        token: this.generaJWT()
-    }
-}
+  return jwt.sign({
+    id: this._id,
+    username: this.username,
+    exp: parseInt(exp.getTime() / 1000),
+  }, secret);
+};
 
-mongoose.model("Usuario", UsuarioSchema);
+UsuarioSchema.methods.toAuthJSON = function(){
+  return {
+    username: this.username,
+    email: this.email,
+    token: this.generarJWT()
+  };
+};
+
+
+/**
+* Devuelve la representación de un usuario, sólo datos públicos
+*/
+UsuarioSchema.methods.publicData = function(){
+  return {
+    id: this.id,
+    username: this.username,
+    email: this.email,
+    nombre: this.nombre,
+    apellido: this.apellido,
+    bio: this.bio,
+    foto: this.foto,
+    tipo: this.tipo,
+    ubicacion: this.ubicacion,
+    telefono: this.telefono,
+    createdAt: this.createdAt,
+    updatedAt: this.updatedAt
+  };
+};
+
+mongoose.model("Usuario", UsuarioSchema);    //Define el modelo Usuario, utilizando el esquema UsuarioSchema.
+
+

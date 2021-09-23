@@ -1,78 +1,33 @@
-const mongoose = require('mongoose');
-const Solicitud = mongoose.model("Solicitud");
+const Solicitud = require('../models/Solicitud')
 
 // CRUD
-function createSolicitud(req, res, next){
+
+function crearSolicitud(req, res){
 	var solicitud = new Solicitud(req.body);
-    solicitud.save()
-		.then(soli => {
-        	res.status(200).send(soli);
-    	})
-		.catch(next)
+	res.status(200).send(solicitud);
 }
 
-function getSolicitud(req, res, next){
-	if (req.params.id) {
-        Solicitud.findById(req.params.id)
-		.then(solicitud => {
-            res.send(solicitud)
-        })
-		.catch(next)
-    } else {
-        Solicitud.find()
-		.then(solicitud => {
-            res.send(solicitud)
-        })
-		.catch(next)
-    }
+function obtenerSolicitud(req, res){
+	var solicitud1 = new Solicitud(1, 2, '25/06/2021', 3, 2, 'Activa')
+  	var solicitud2 = new Solicitud(2, 5, '5/12/2021', 4, 1, 'Rechazada')
+  	res.send([solicitud1,solicitud2])
 }
 
-function updateSolicitud(req, res, next){
-	Solicitud.findById(req.params.id)
-	.then(solicitud => {
-		if (!solicitud) { return res.sendStatus(401); }
-		let nuevaInfo = req.body
-		if (typeof nuevaInfo.idMascota !== 'undefined')
-			solicitud.idMascota = nuevaInfo.idMascota
-		if (typeof nuevaInfo.idUsuarioAnunciante !== 'undefined')
-			solicitud.idUsuarioAnunciante = nuevaInfo.idUsuarioAnunciante
-		if (typeof nuevaInfo.idUsuarioSolicitante !== 'undefined')
-			solicitud.idUsuarioSolicitante = nuevaInfo.idUsuarioSolicitante
-		if (typeof nuevaInfo.estado !== 'undefined')
-			solicitud.estado = nuevaInfo.estado
-		
-			solicitud.save()
-		.then(updated => {
-			res.status(200).json(updated.publicData())
-		})
-		.catch(next)
-	})
-	.catch(next)
-	
+function modificarSolicitud(req, res){
+	var solicitud = new Solicitud(req.params.id,2, '25/06/2021', 3, 2, 'Activa')
+	var modificaciones = req.body
+	solicitud = {...solicitud,...modificaciones }
+	res.send(solicitud)
 }
 
-function deleteSolicitud(req, res, next) {
-    Solicitud.findOneAndDelete({_id: req.params.id})
-    .then(eliminandoando => {
-        res.status(200).send(`Solicitud ${req.params.id} ha sido eliminado: ${eliminandoando}`);
-    }).catch(next);
-}
-
-function countIdMascota(req, res, next){
-	const idMascota = req.params.id;
-	Solicitud.aggregate([
-		{"$match": {"idMascota": idMascota}},
-		{"$count": "total"}
-	]).then(r => {
-		res.status(200).send(r);
-	})
-	.catch(next);
+function eliminarSolicitud(req, res){
+	res.status(200).send(`La solicitud ${req.params.id} se elimino`)
 }
 
 module.exports = {
-	createSolicitud,
-	getSolicitud,
-	updateSolicitud,
-	deleteSolicitud,
-	countIdMascota
+	crearSolicitud,
+	obtenerSolicitud,
+	modificarSolicitud,
+	eliminarSolicitud
 }
+

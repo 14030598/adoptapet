@@ -11,17 +11,16 @@ function crearUsuario(req, res, next) {
   const usuario = new Usuario(body)
   usuario.crearPassword(password)
   usuario.save().then(user => {                                         //Guardando nuevo usuario en MongoDB.
-    return res.status(201).json(user.toAuthJSON())
+      return res.status(201).json(user.toAuthJSON())
   }).catch(next)
 }
 
 function obtenerUsuarios(req, res, next) {                              //Obteniendo usuario desde MongoDB.
-
   Usuario.findById(req.usuario.id, (err, user) => {
-    if (!user || err) {
-      return res.sendStatus(401)
-    }
-    return res.json(user.publicData());
+      if (!user || err) {
+          return res.sendStatus(401)
+      }
+      return res.json(user.publicData());
   }).catch(err => res.send(err));
 }
 
@@ -49,10 +48,10 @@ function modificarUsuario(req, res, next) {
 }
 
 function eliminarUsuario(req, res) {
-  // únicamente borra a su propio usuario obteniendo el id del token
-  Usuario.findOneAndDelete({ _id: req.usuario.id }).then(r => {         //Buscando y eliminando usuario en MongoDB.
-    res.status(200).send(`Usuario ${req.params.id} eliminado: ${r}`);
-  })
+    // únicamente borra a su propio usuario obteniendo el id del token
+    Usuario.findOneAndDelete({ _id: req.usuario.id }).then(r => {         //Buscando y eliminando usuario en MongoDB.
+      res.status(200).send(`Usuario ${req.params.id} eliminado: ${r}`);
+    })
 }
 
 function iniciarSesion(req, res, next) {

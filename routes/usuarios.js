@@ -1,10 +1,10 @@
 const router = require('express').Router();
 const {
-  crearUsuario,
-  obtenerUsuarios,
-  modificarUsuario,
-  eliminarUsuario,
-  iniciarSesion
+    crearUsuario,
+    obtenerUsuarios,
+    modificarUsuario,
+    eliminarUsuario,
+    iniciarSesion
 } = require('../controllers/usuarios')
 const auth = require('./auth');
 

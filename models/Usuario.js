@@ -35,7 +35,7 @@ tipo: { type: String, enum: ['normal', 'anunciante'] },
 hash: String, //este campo se utilizará para la sesión
 salt: String, //este campo se utilizará para la sesión
 },
-{ timestamps: true }
+{ timestamps: true, collection: 'Usuarios'}
 );
 
 // usando plugin de validación para que no se repitan correos ni usernames
